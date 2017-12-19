@@ -8,22 +8,32 @@
 
 import UIKit
 
-class ViewController: UITableViewController {
+class ContactsController: UITableViewController {
     
     let cellId = "cellId"
-    
-    var twoDimensionalArray = [
-        ExapandableNames(isExapanded: true, names: ["Amy", "Bill", "Zack", "Steve", "Jack", "Jill", "Mary"]),
-        ExapandableNames(isExapanded: true, names: ["Carl", "Chris", "Christina", "Cameron"]),
-        ExapandableNames(isExapanded: true, names: ["David", "Dan"]),
-        ExapandableNames(isExapanded: true, names: ["Patrick", "Patty"])
-    ]
-    
     var showIndexPaths = false
     
-    @objc private func handleShowIndexPath() {
-        print("Attempting reload animation of indexPaths")
+    func someMethodIWantToCall(cell: UITableViewCell) {
         
+        guard let indexPathTapped = tableView.indexPath(for: cell) else { return }
+        
+        let contact = twoDimensionalArray[indexPathTapped.section].names[indexPathTapped.row]
+
+        let hasFavorited = contact.hasFavorited
+        twoDimensionalArray[indexPathTapped.section].names[indexPathTapped.row].hasFavorited = !hasFavorited
+        
+        cell.accessoryView?.tintColor = hasFavorited ? .lightGray : .red
+    }
+    
+    var twoDimensionalArray = [
+        ExpandableNames(isExpanded: true, names: ["Amy", "Bill", "Zack", "Steve", "Jack", "Jill", "Mary"].map{ Contact(name: $0, hasFavorited: false) }),
+        ExpandableNames(isExpanded: true, names: ["Carl", "Chris", "Christina", "Cameron"].map{ Contact(name: $0, hasFavorited: false) }),
+        ExpandableNames(isExpanded: true, names: ["David", "Dan"].map{ Contact(name: $0, hasFavorited: false) }),
+        ExpandableNames(isExpanded: true, names: [Contact(name: "Patrick", hasFavorited: false)]),
+        ]
+    
+    
+    @objc private func handleShowIndexPath() {
         var indexPathsToReload = [IndexPath]()
         
         for section in twoDimensionalArray.indices {
@@ -32,11 +42,12 @@ class ViewController: UITableViewController {
                 indexPathsToReload.append(indexPath)
             }
         }
+        
         showIndexPaths = !showIndexPaths
         let animationStyle = showIndexPaths ? UITableViewRowAnimation.right : .left
         tableView.reloadRows(at: indexPathsToReload, with: animationStyle)
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -44,8 +55,8 @@ class ViewController: UITableViewController {
         
         navigationItem.title = "Contacts"
         navigationController?.navigationBar.prefersLargeTitles = true
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellId)
-            }
+        tableView.register(ContactsCell.self, forCellReuseIdentifier: cellId)
+    }
     
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let button = UIButton(type: .system)
@@ -61,7 +72,6 @@ class ViewController: UITableViewController {
     }
     
     @objc private func handleExpandClose(button: UIButton) {
-        
         let section = button.tag
         
         var indexPaths = [IndexPath]()
@@ -72,11 +82,11 @@ class ViewController: UITableViewController {
         }
         
         
-        let isExpanded = twoDimensionalArray[section].isExapanded
-        twoDimensionalArray[section].isExapanded = !isExpanded
+        let isExpanded = twoDimensionalArray[section].isExpanded
+        twoDimensionalArray[section].isExpanded = !isExpanded
         
         button.setTitle(isExpanded ? "Open" : "close", for: .normal)
-
+        
         
         if isExpanded {
             tableView.deleteRows(at: indexPaths, with: .fade)
@@ -94,7 +104,7 @@ class ViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if !twoDimensionalArray[section].isExapanded {
+        if !twoDimensionalArray[section].isExpanded {
             return 0
         }
         
@@ -102,17 +112,20 @@ class ViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
-        let name = twoDimensionalArray[indexPath.section].names[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! ContactsCell
+        cell.link = self
+        let contact = twoDimensionalArray[indexPath.section].names[indexPath.row]
         
-        cell.textLabel?.text = name
+        cell.textLabel?.text = contact.name
+        
+        cell.accessoryView?.tintColor = contact.hasFavorited ? UIColor.red : .lightGray
         
         if showIndexPaths {
-            cell.textLabel?.text = "\(name) Section:\(indexPath.section) Row\(indexPath.row)"
+            cell.textLabel?.text = "\(contact.name) Section:\(indexPath.section) Row\(indexPath.row)"
         }
         
         return cell
     }
-
+    
 }
 
