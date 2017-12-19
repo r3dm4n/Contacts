@@ -40,6 +40,7 @@ class ContactsController: UITableViewController {
             for row in twoDimensionalArray[section].names.indices {
                 let indexPath = IndexPath(row: row, section: section)
                 indexPathsToReload.append(indexPath)
+                
             }
         }
         
@@ -51,18 +52,28 @@ class ContactsController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Show index path", style: .plain, target: self, action: #selector(handleShowIndexPath))
-        
-        navigationItem.title = "Contacts"
-        navigationController?.navigationBar.prefersLargeTitles = true
+        setupNavBar()
         tableView.register(ContactsCell.self, forCellReuseIdentifier: cellId)
+    }
+    
+    private func setupNavBar() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Show index path", style: .plain, target: self, action: #selector(handleShowIndexPath))
+        navigationItem.title = "Contacts"
+        
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationController?.navigationBar.barTintColor = UIColor(red:0.91, green:0.15, blue:0.30, alpha:1.00)
+        navigationController?.navigationBar.tintColor = .white
+    }
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
     }
     
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let button = UIButton(type: .system)
         button.setTitle("Close", for: .normal)
         button.setTitleColor(.black, for: .normal)
-        button.backgroundColor = .yellow
+        button.backgroundColor = UIColor(red:0.84, green:0.91, blue:0.94, alpha:1.00)
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 14)
         button.addTarget(self, action: #selector(handleExpandClose), for: .touchUpInside)
         
