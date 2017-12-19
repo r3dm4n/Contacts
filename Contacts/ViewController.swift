@@ -12,11 +12,11 @@ class ViewController: UITableViewController {
     
     let cellId = "cellId"
     
-    let twoDimensionalArray = [
-        ["Amy", "Bill", "Zack", "Steve", "Jack", "Jill", "Mary"],
-        ["Carl", "Chris", "Christina", "Cameron"],
-        ["David", "Dan"],
-        ["Patrick", "Patty"]
+    var twoDimensionalArray = [
+        ExapandableNames(isExapanded: true, names: ["Amy", "Bill", "Zack", "Steve", "Jack", "Jill", "Mary"]),
+        ExapandableNames(isExapanded: true, names: ["Carl", "Chris", "Christina", "Cameron"]),
+        ExapandableNames(isExapanded: true, names: ["David", "Dan"]),
+        ExapandableNames(isExapanded: true, names: ["Patrick", "Patty"])
     ]
     
     var showIndexPaths = false
@@ -27,7 +27,7 @@ class ViewController: UITableViewController {
         var indexPathsToReload = [IndexPath]()
         
         for section in twoDimensionalArray.indices {
-            for row in twoDimensionalArray[section].indices {
+            for row in twoDimensionalArray[section].names.indices {
                 let indexPath = IndexPath(row: row, section: section)
                 indexPathsToReload.append(indexPath)
             }
@@ -45,13 +45,48 @@ class ViewController: UITableViewController {
         navigationItem.title = "Contacts"
         navigationController?.navigationBar.prefersLargeTitles = true
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellId)
-    }
+            }
     
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let label = UILabel()
-        label.backgroundColor = .lightGray
-        label.text = "Header"
-        return label
+        let button = UIButton(type: .system)
+        button.setTitle("Close", for: .normal)
+        button.setTitleColor(.black, for: .normal)
+        button.backgroundColor = .yellow
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 14)
+        button.addTarget(self, action: #selector(handleExpandClose), for: .touchUpInside)
+        
+        button.tag = section
+        
+        return button
+    }
+    
+    @objc private func handleExpandClose(button: UIButton) {
+        
+        let section = button.tag
+        
+        var indexPaths = [IndexPath]()
+        
+        for row in twoDimensionalArray[section].names.indices {
+            let indexPath = IndexPath(row: row, section: section)
+            indexPaths.append(indexPath)
+        }
+        
+        
+        let isExpanded = twoDimensionalArray[section].isExapanded
+        twoDimensionalArray[section].isExapanded = !isExpanded
+        
+        button.setTitle(isExpanded ? "Open" : "close", for: .normal)
+
+        
+        if isExpanded {
+            tableView.deleteRows(at: indexPaths, with: .fade)
+        } else {
+            tableView.insertRows(at: indexPaths, with: .fade)
+        }
+    }
+    
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 36
     }
     
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -59,12 +94,16 @@ class ViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return twoDimensionalArray[section].count
+        if !twoDimensionalArray[section].isExapanded {
+            return 0
+        }
+        
+        return twoDimensionalArray[section].names.count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
-        let name = twoDimensionalArray[indexPath.section][indexPath.row]
+        let name = twoDimensionalArray[indexPath.section].names[indexPath.row]
         
         cell.textLabel?.text = name
         
